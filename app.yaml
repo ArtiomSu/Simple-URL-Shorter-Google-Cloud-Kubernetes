@@ -1,0 +1,5 @@
+runtime: nodejs14
+instance_class: F1
+
+env_variables:
+  UV_THREADPOOL_SIZE: 64
