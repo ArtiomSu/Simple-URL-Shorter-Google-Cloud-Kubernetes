@@ -3,7 +3,6 @@ let express = require('express');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 require('dotenv').config();
-let debug = require('debug')('api:app');
 let database = require('./database');
 
 let app = express();
@@ -59,7 +58,6 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  // render the error page
   res.status(err.status || 500);
   //return res.json(process.env.env === 'development' ? err : {});
   return res.json(err);

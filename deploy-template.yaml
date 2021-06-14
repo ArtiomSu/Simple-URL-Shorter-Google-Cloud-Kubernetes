@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: url-app-deployment
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: url-shortner
+  template:
+    metadata:
+      labels:
+        app: url-shortner
+    spec:
+      containers:
+        - name: url-shortner
+          image: <image>
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: envs
+
+        - name: cloud-sql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:latest
+          imagePullPolicy: Always
+          command:
+            - "/cloud_sql_proxy"
+            - "-instances=<projectname>tcp:5432"
+            - "-credential_file=/secrets/cloudsql/credentials.json"
+          securityContext:
+            runAsNonRoot: true
+          volumeMounts:
+            - name: cloudsql-sa-creds
+              mountPath: /secrets/cloudsql
+              readOnly: true
+      volumes:
+        - name: cloudsql-sa-creds
+          secret:
+            secretName: cloudsql-sa-creds

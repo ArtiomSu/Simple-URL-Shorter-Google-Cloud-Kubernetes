@@ -7,13 +7,9 @@ let pgConfig = {
     user: process.env.POSTGRESS_USER,
     password: process.env.POSTGRESS_PASSWORD,
     database: process.env.POSTGRESS_DATABASE,
-    host: process.env.POSTGRESS_IP,
+    host: 5432, // hardcoded because I use googles sql proxy so its the same port and ip for dev and prod
+    port: "127.0.0.1"
 };
-
-if(process.env.env === 'development'){
-    pgConfig.host = "127.0.0.1";
-    pgConfig.PORT = 5432;
-}
 
 let pgPool;
 if (!pgPool) {
