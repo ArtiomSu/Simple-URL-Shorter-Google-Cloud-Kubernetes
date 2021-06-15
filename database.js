@@ -7,8 +7,8 @@ let pgConfig = {
     user: process.env.POSTGRESS_USER,
     password: process.env.POSTGRESS_PASSWORD,
     database: process.env.POSTGRESS_DATABASE,
-    host: 5432, // hardcoded because I use googles sql proxy so its the same port and ip for dev and prod
-    port: "127.0.0.1"
+    host: "127.0.0.1", // hardcoded because I use googles sql proxy so its the same port and ip for dev and prod
+    port: 5432
 };
 
 let pgPool;
@@ -37,11 +37,11 @@ exports.addLink = (req,res, next, url_is_generated, conflict_hit_count) =>{
         req.body.short = genShort(initial_short_url_length+conflict_hit_count);
     }
 
+    debug("long_url is", req.body.full, "short url is", req.body.short);
     pgPool.query("INSERT INTO url(full_,short) values($1,$2)",[req.body.full,req.body.short]).then(userResponse =>{
         if(userResponse){
             return res.status(200).json({url:req.protocol + '://' + req.get('host')+'/'+req.body.short});
         }
-        return next();
         //return res.status(500).json({error: 'No data available'});
     }).catch(err =>{
         if(err.code === '23505'){ //primary key (short) already exists
@@ -57,6 +57,9 @@ exports.addLink = (req,res, next, url_is_generated, conflict_hit_count) =>{
                 return next({error: 'This shortened url already exists, please pick another one', status:400});
             }
         }else{
+            if(err.code === "ECONNREFUSED"){
+                return next({error: 'Cannot connect to database'});
+            }
             return next({error: 'Internal Server Error! '+err.message});
         }
     })
@@ -70,6 +73,9 @@ exports.getFullLink = (req,res, next) =>{
         }
         return next();
     }).catch(err =>{
+        if(err.code === "ECONNREFUSED"){
+            return next({error: 'Cannot connect to database'});
+        }
         return next({error: 'Internal Server Error! '+err.message});
     })
 }
